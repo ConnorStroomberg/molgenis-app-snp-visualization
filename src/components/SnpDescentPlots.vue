@@ -48,7 +48,7 @@
                   <i class="fa fa-download" aria-hidden="true"></i>
                 </button>
             </div>
-            <div class="col-3">
+            <div class="col-3" v-show="status">
                 <span id="statusUpdate">
                   <small>
                     <i><span v-model="status"> {{status}}</span></i>
@@ -56,7 +56,8 @@
                   <i class="fa fa-spinner fa-pulse fa-fw" v-if="isLoading"></i>
                 </span>
                 <div class="progress">
-                  <div class="progress-bar" role="progressbar" style="height: 0.6rem;" v-bind:style="{width: rounded + '%'}" :aria-valuenow="rounded" aria-valuemin="0" aria-valuemax="100"></div>
+                  <div class="progress-bar" role="progressbar" v-bind:style="{width: rounded + '%'}"
+                       :aria-valuenow="rounded" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
             </div>
           </div>
@@ -81,7 +82,8 @@
   }
 
   .progress-bar {
-    background-color: grey
+    background-color: grey;
+    height: 0.6rem;
   }
 </style>
 <script>
@@ -108,10 +110,9 @@
           width: 1000,
           bottomMargin: 30,
           titleOffset: 25
-        }
-        selectedChromosome: '1',
+        },
         percentageCompleted: 1,
-        linePersentage: undefined,
+        linePercentage: undefined,
         progressUpdateCounter: 0,
         rounded: 1
       }
@@ -181,24 +182,19 @@
           .style('stroke-width', 1)
       },
       setDisableProcess () {
-        if (this.dataFile && this.hasDefFile) {
-          this.disableProcess = false
-        } else {
-          this.disableProcess = true
-        }
+        this.disableProcess = !(this.dataFile && this.hasDefFile)
       },
       getCurrentDateTime () {
-        var currentdate = new Date()
-        var minutes = currentdate.getMinutes()
+        const currentDate = new Date()
+        let minutes = currentDate.getMinutes()
         if (minutes < 10) {
           minutes = '0' + minutes.toString()
         }
-        var datetime = currentdate.getDate() + '/' +
-          (currentdate.getMonth() + 1) + '/' +
-          currentdate.getFullYear() + ' @ ' +
-          currentdate.getHours() + ':' +
+        return currentDate.getDate() + '/' +
+          (currentDate.getMonth() + 1) + '/' +
+          currentDate.getFullYear() + ' @ ' +
+          currentDate.getHours() + ':' +
           minutes
-        return datetime
       },
       onDownloadButtonClick () {
         const svgElements = document.querySelectorAll('div>.plot-container>svg')
@@ -260,18 +256,17 @@
       forEachLine (line) {
         const columns = line.split('\t')
         if (this.isSelectedChromosome(columns)) {
-          if (!this.linePersentage) {
+          if (!this.linePercentage) {
             const lineSize = new Blob([line]).size
-            this.linePersentage = 100 / (this.dataFile.size / lineSize)
-            console.log('line linePersentage: ' + this.linePersentage)
+            this.linePercentage = 100 / (this.dataFile.size / lineSize)
+            console.log('line linePercentage: ' + this.linePercentage)
           } else {
             this.progressUpdateCounter++
             const updateInterval = 5000
             if (this.progressUpdateCounter >= updateInterval) {
               this.progressUpdateCounter = 0
-              this.percentageCompleted = this.percentageCompleted + this.linePersentage * updateInterval
+              this.percentageCompleted = this.percentageCompleted + this.linePercentage * updateInterval
               this.rounded = Math.round(this.percentageCompleted)
-              console.log('percentageCompleted:' + this.rounded)
             }
           }
           const combinationLabels = Object.keys(this.$store.state.dataIndex)
@@ -319,7 +314,7 @@
         const columns = lines[0].replace(/\r/g, '').split('\t')
         columns.shift()
         const defs = lines[1].replace(/\r/g, '').split('\t')
-        for (var i = 0; i < columns.length; i++) {
+        for (let i = 0; i < columns.length; i++) {
           defObj[columns[i]] = defs[i + 1]
         }
         return defObj
@@ -392,7 +387,7 @@
             onComplete() // Done
             return
           }
-          var slice = file.slice(offset, offset + CHUNK_SIZE)
+          let slice = file.slice(offset, offset + CHUNK_SIZE)
           fileReader.readAsText(slice)
         }
       }
