@@ -42,7 +42,9 @@
             </select>
           </div>
           <button type="button" class="btn btn-primary" id="processFiles" @click="onProcessBtnClicked" :disabled="disableProcess">Process data</button>
-          <a id="download-btn" class="btn btn-primary" href="#" role="button" :disabled="!isReadyToDownLoad" v-bind:class="{ disabled: !isReadyToDownLoad }">
+          <a id="download-btn" class="btn btn-primary" href="#" role="button"
+             :disabled="!isReadyToDownLoad" v-bind:class="{ disabled: !isReadyToDownLoad }"
+             v-show="!isInternetExplorer">
             <i class="fa fa-download" aria-hidden="true"></i>
           </a>
           <span id="statusUpdate"><small><i><span v-model="status"> {{status}} </span></i></small><i
@@ -187,6 +189,9 @@
         this.isLoading = false
         this.isReadyToDownLoad = true
         this.status = `Completed in ${Math.round((this.t1 - this.t0) / 1000)} seconds`
+        if (this.isInternetExplorer) {
+          this.status += 'Right click the image to Save or Copy the plot.'
+        }
       },
       setDownLoadClickHandler () {
         function downloadCanvas (link) {
@@ -203,6 +208,17 @@
     computed: {
       disableProcess: function () {
         return !(this.dataFile && this.hasDefFile)
+      },
+      isInternetExplorer: function () {
+        // IE 10 ua = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)';
+        // IE 11 ua = 'Mozilla/5.0 (Windows NT 6.3; Trident/7.0; rv:11.0) like Gecko';
+        // Edge 12 (Spartan) ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
+        // Edge 13 ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2486.0 Safari/537.36 Edge/13.10586';
+        const ua = window.navigator.userAgent
+        let msie = ua.indexOf('MSIE ')
+        let trident = ua.indexOf('Trident/')
+        let edge = ua.indexOf('Edge/')
+        return true || msie > 0 || trident > 0 || edge > 0
       }
     },
     mounted: function () {
